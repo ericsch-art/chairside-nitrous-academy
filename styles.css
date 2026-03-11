@@ -308,6 +308,51 @@ textarea:focus {
   gap: 14px;
 }
 
+.marketing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.feature-grid,
+.curriculum-overview {
+  display: grid;
+  gap: 12px;
+}
+
+.feature-card,
+.curriculum-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, #fbfdff, #f2f7fc);
+}
+
+.feature-card strong,
+.curriculum-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-family: "Montserrat", sans-serif;
+}
+
+.feature-card p,
+.curriculum-card p,
+.section-copy {
+  margin: 0;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.curriculum-number {
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .stat {
   padding: 18px;
   border-radius: 20px;
@@ -519,7 +564,8 @@ textarea:focus {
 @media (max-width: 1180px) {
   .app-shell,
   .hero,
-  .panel-grid {
+  .panel-grid,
+  .marketing-grid {
     grid-template-columns: 1fr;
   }
 

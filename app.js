@@ -33,6 +33,8 @@ const els = {
   installButton: document.querySelector("#installButton"),
   heroInstallButton: document.querySelector("#heroInstallButton"),
   heroReviewButton: document.querySelector("#heroReviewButton"),
+  uniqueFeatures: document.querySelector("#uniqueFeatures"),
+  curriculumOverview: document.querySelector("#curriculumOverview"),
   moduleButtonTemplate: document.querySelector("#moduleButtonTemplate"),
 };
 
@@ -54,6 +56,7 @@ async function init() {
   }
 
   renderHeroStats();
+  renderMarketingSections();
   renderModuleList();
   renderSelectedModule();
 }
@@ -234,6 +237,46 @@ function renderHeroStats() {
     card.innerHTML = `<strong>${value}</strong><span>${label}</span>`;
     els.heroStats.appendChild(card);
   }
+}
+
+function renderMarketingSections() {
+  const features = [
+    {
+      title: "Three Learning Environments",
+      body: "Virtual classroom teaching, simulation-based context, and case-style assessments mirror the SSTminimal course rhythm.",
+    },
+    {
+      title: "Focused Mobile Delivery",
+      body: "Short modules, persistent progress, and installable offline access support chairside review and distributed learning.",
+    },
+    {
+      title: "Evidence-Linked Content",
+      body: "Each module keeps learning objectives and references close to the instruction so standards and citations stay visible.",
+    },
+  ];
+
+  els.uniqueFeatures.innerHTML = features
+    .map(
+      (item) => `
+        <article class="feature-card">
+          <strong>${item.title}</strong>
+          <p>${item.body}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  els.curriculumOverview.innerHTML = state.modules
+    .map(
+      (module) => `
+        <article class="curriculum-card">
+          <div class="curriculum-number">Module ${module.number}</div>
+          <strong>${module.title}</strong>
+          <p>${module.objectives.length} learning objectives · ${module.questions.length} assessment items</p>
+        </article>
+      `,
+    )
+    .join("");
 }
 
 function renderModuleList() {

@@ -55,32 +55,53 @@
 
       <main class="content">
         <section class="topbar">
-          <div class="topbar-chip">Safe Sedation-style experience</div>
+          <div class="topbar-chip">SSTminimal-style experience</div>
           <div class="topbar-links">
-            <span>Self-paced modules</span>
-            <span>Clinical assessments</span>
-            <span>Web + PWA delivery</span>
+            <span>Adaptive learning feel</span>
+            <span>Dental-focused delivery</span>
+            <span>Web + PWA access</span>
           </div>
         </section>
 
         <section class="hero">
           <div>
-            <p class="eyebrow">Nitrous Oxide Course Platform</p>
-            <h2>Modern sedation training for dentistry, presented in a polished clinical course format.</h2>
+            <p class="eyebrow">SSTminimal for Nitrous Oxide</p>
+            <h2>Minimal sedation training for dental practitioners, rebuilt as a modern web course.</h2>
             <p class="hero-copy">
-              This release converts your source material into a professional web course with guided modules, mastery tracking, transcript-based teaching, references, and chairside-ready offline access.
+              This nitrous oxide course teaches the science and workflow of safely administering inhaled minimal sedation in dental practice through guided modules, virtual instruction environments, and quick knowledge checks.
             </p>
             <div class="hero-actions">
-              <button id="heroReviewButton" class="button button-accent">Review Current Module</button>
-              <button id="heroInstallButton" class="button button-secondary">Install for Offline Use</button>
+              <button id="heroReviewButton" class="button button-accent">Start Learning</button>
+              <button id="heroInstallButton" class="button button-secondary">Install on Mobile</button>
             </div>
             <div class="trust-strip">
-              <div><strong>Audience</strong><span>Dentists and dental teams</span></div>
-              <div><strong>Format</strong><span>Module, transcript, assessment</span></div>
-              <div><strong>Standard</strong><span>Evidence-linked course draft</span></div>
+              <div><strong>Audience</strong><span>Dental practitioners and teams</span></div>
+              <div><strong>Format</strong><span>Virtual classroom, simulation, assessments</span></div>
+              <div><strong>Access</strong><span>Mobile-ready and self-paced</span></div>
             </div>
           </div>
           <div class="hero-grid" id="heroStats"></div>
+        </section>
+
+        <section class="marketing-grid">
+          <section class="card feature-section">
+            <div class="section-header">
+              <h4>What’s Unique About This Course</h4>
+              <span>Aligned to SSTminimal structure</span>
+            </div>
+            <div id="uniqueFeatures" class="feature-grid"></div>
+          </section>
+
+          <section class="card curriculum-section">
+            <div class="section-header">
+              <h4>Curriculum</h4>
+              <span>Self-paced module sequence</span>
+            </div>
+            <p class="section-copy">
+              The course is organized into short mobile-friendly modules. Each module blends instruction, clinical framing, and assessment so learners can progress at their own pace and return where they left off.
+            </p>
+            <div id="curriculumOverview" class="curriculum-overview"></div>
+          </section>
         </section>
 
         <section class="banner">
@@ -127,7 +148,7 @@
 
           <section class="card">
             <div class="section-header">
-              <h4>Teaching Transcript</h4>
+              <h4>Virtual Classroom Transcript</h4>
               <span id="transcriptCount"></span>
             </div>
             <div id="transcript" class="transcript"></div>
@@ -135,7 +156,7 @@
 
           <section class="card">
             <div class="section-header">
-              <h4>Assessment Studio</h4>
+              <h4>Virtual Sedation Suite Assessments</h4>
               <span id="assessmentStatus"></span>
             </div>
             <div id="assessments" class="assessments"></div>
