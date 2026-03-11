@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Chairside Nitrous Academy is a progressive web app for dental nitrous oxide training, built from structured course content with assessments, references, and progress tracking."
+    />
+    <meta name="theme-color" content="#143642" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>Chairside Nitrous Academy</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <p class="eyebrow">Dental Nitrous Oxide PWA</p>
+          <h1>Chairside Nitrous Academy</h1>
+          <p class="brand-copy">
+            Evidence-oriented procedural training for dental teams, structured in the same modular cadence as your supplied SSTMin-style content.
+          </p>
+        </div>
+
+        <div class="install-card" id="installCard" hidden>
+          <p>Install this app for offline chairside review.</p>
+          <button id="installButton" class="button button-primary">Install App</button>
+        </div>
+
+        <label class="search">
+          <span>Search course content</span>
+          <input id="searchInput" type="search" placeholder="Search modules, objectives, assessments..." />
+        </label>
+
+        <section class="module-list-wrap">
+          <div class="section-header">
+            <h2>Modules</h2>
+            <span id="progressSummary">0%</span>
+          </div>
+          <nav id="moduleList" class="module-list" aria-label="Course modules"></nav>
+        </section>
+      </aside>
+
+      <main class="content">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">Web-first launch</p>
+            <h2>Deployable dental training with structured modules, assessments, and offline access.</h2>
+            <p class="hero-copy">
+              This initial release turns your source document into an installable web app with module navigation, mastery tracking, references, and learner notes. Content should undergo final dental faculty and legal review before clinical use.
+            </p>
+          </div>
+          <div class="hero-grid" id="heroStats"></div>
+        </section>
+
+        <section class="banner">
+          <div>
+            <strong>Educational use notice</strong>
+            <p>
+              Built from the provided course file. Use this as a training platform draft, not as a substitute for institution-specific protocols, licensing requirements, or supervising dentist review.
+            </p>
+          </div>
+          <button id="markReviewedButton" class="button button-secondary">Mark Module Reviewed</button>
+        </section>
+
+        <section class="module-panel">
+          <header class="module-header">
+            <div>
+              <p class="eyebrow" id="moduleEyebrow">Loading course...</p>
+              <h3 id="moduleTitle">Preparing content</h3>
+              <p id="moduleSummary" class="module-summary"></p>
+            </div>
+            <div class="module-badges">
+              <span id="objectiveCount" class="badge"></span>
+              <span id="questionCount" class="badge"></span>
+              <span id="referenceCount" class="badge"></span>
+            </div>
+          </header>
+
+          <div class="panel-grid">
+            <section class="card">
+              <div class="section-header">
+                <h4>Learning Objectives</h4>
+                <span id="objectiveStatus"></span>
+              </div>
+              <ul id="objectivesList" class="objective-list"></ul>
+            </section>
+
+            <section class="card">
+              <div class="section-header">
+                <h4>Learner Notes</h4>
+                <span>Saved locally</span>
+              </div>
+              <textarea id="notesInput" rows="10" placeholder="Add dental workflow notes, chairside reminders, or faculty edits..."></textarea>
+            </section>
+          </div>
+
+          <section class="card">
+            <div class="section-header">
+              <h4>Teaching Transcript</h4>
+              <span id="transcriptCount"></span>
+            </div>
+            <div id="transcript" class="transcript"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-header">
+              <h4>Assessment Studio</h4>
+              <span id="assessmentStatus"></span>
+            </div>
+            <div id="assessments" class="assessments"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-header">
+              <h4>References</h4>
+              <span>Primary-source library</span>
+            </div>
+            <div id="references" class="references"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="moduleButtonTemplate">
+      <button class="module-button" type="button">
+        <span class="module-button-top">
+          <span class="module-number"></span>
+          <span class="module-progress"></span>
+        </span>
+        <strong class="module-name"></strong>
+        <span class="module-meta"></span>
+      </button>
+    </template>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
