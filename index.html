@@ -7,12 +7,12 @@
       name="description"
       content="Chairside Nitrous Academy is a progressive web app for dental nitrous oxide training, built from structured course content with assessments, references, and progress tracking."
     />
-    <meta name="theme-color" content="#143642" />
+    <meta name="theme-color" content="#0d3b66" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
@@ -22,10 +22,15 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
-          <p class="eyebrow">Dental Nitrous Oxide PWA</p>
-          <h1>Chairside Nitrous Academy</h1>
+          <div class="brand-lockup">
+            <div class="brand-mark">SST</div>
+            <div>
+              <p class="eyebrow">Dental Nitrous Oxide Training</p>
+              <h1>Chairside Nitrous Academy</h1>
+            </div>
+          </div>
           <p class="brand-copy">
-            Evidence-oriented procedural training for dental teams, structured in the same modular cadence as your supplied SSTMin-style content.
+            Built in a Safe Sedation Training-inspired format for dentists and dental teams learning nitrous oxide delivery, safety, and documentation.
           </p>
         </div>
 
@@ -49,22 +54,40 @@
       </aside>
 
       <main class="content">
+        <section class="topbar">
+          <div class="topbar-chip">Safe Sedation-style experience</div>
+          <div class="topbar-links">
+            <span>Self-paced modules</span>
+            <span>Clinical assessments</span>
+            <span>Web + PWA delivery</span>
+          </div>
+        </section>
+
         <section class="hero">
           <div>
-            <p class="eyebrow">Web-first launch</p>
-            <h2>Deployable dental training with structured modules, assessments, and offline access.</h2>
+            <p class="eyebrow">Nitrous Oxide Course Platform</p>
+            <h2>Modern sedation training for dentistry, presented in a polished clinical course format.</h2>
             <p class="hero-copy">
-              This initial release turns your source document into an installable web app with module navigation, mastery tracking, references, and learner notes. Content should undergo final dental faculty and legal review before clinical use.
+              This release converts your source material into a professional web course with guided modules, mastery tracking, transcript-based teaching, references, and chairside-ready offline access.
             </p>
+            <div class="hero-actions">
+              <button id="heroReviewButton" class="button button-accent">Review Current Module</button>
+              <button id="heroInstallButton" class="button button-secondary">Install for Offline Use</button>
+            </div>
+            <div class="trust-strip">
+              <div><strong>Audience</strong><span>Dentists and dental teams</span></div>
+              <div><strong>Format</strong><span>Module, transcript, assessment</span></div>
+              <div><strong>Standard</strong><span>Evidence-linked course draft</span></div>
+            </div>
           </div>
           <div class="hero-grid" id="heroStats"></div>
         </section>
 
         <section class="banner">
           <div>
-            <strong>Educational use notice</strong>
+            <strong>Clinical education notice</strong>
             <p>
-              Built from the provided course file. Use this as a training platform draft, not as a substitute for institution-specific protocols, licensing requirements, or supervising dentist review.
+              Built from the provided course file and styled for a premium training experience. This remains a draft educational product pending dental faculty, compliance, and protocol review.
             </p>
           </div>
           <button id="markReviewedButton" class="button button-secondary">Mark Module Reviewed</button>

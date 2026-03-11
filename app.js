@@ -31,6 +31,8 @@ const els = {
   markReviewedButton: document.querySelector("#markReviewedButton"),
   installCard: document.querySelector("#installCard"),
   installButton: document.querySelector("#installButton"),
+  heroInstallButton: document.querySelector("#heroInstallButton"),
+  heroReviewButton: document.querySelector("#heroReviewButton"),
   moduleButtonTemplate: document.querySelector("#moduleButtonTemplate"),
 };
 
@@ -85,12 +87,26 @@ function wireEvents() {
   });
 
   els.installButton.addEventListener("click", async () => {
-    if (!state.deferredPrompt) return;
-    state.deferredPrompt.prompt();
-    await state.deferredPrompt.userChoice;
-    state.deferredPrompt = null;
-    els.installCard.hidden = true;
+    await promptInstall();
   });
+
+  els.heroInstallButton.addEventListener("click", async () => {
+    await promptInstall();
+  });
+
+  els.heroReviewButton.addEventListener("click", () => {
+    document.querySelector(".module-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+async function promptInstall() {
+  if (!state.deferredPrompt) return;
+  state.deferredPrompt.prompt();
+  await state.deferredPrompt.userChoice;
+  state.deferredPrompt = null;
+  els.installCard.hidden = true;
+  els.heroInstallButton.disabled = true;
+  els.heroInstallButton.textContent = "Installed or Unavailable";
 }
 
 function parseCourse(source) {
