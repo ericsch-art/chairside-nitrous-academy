@@ -14,6 +14,7 @@ const els = {
   heroStats: document.querySelector("#heroStats"),
   progressSummary: document.querySelector("#progressSummary"),
   searchInput: document.querySelector("#searchInput"),
+  searchResults: document.querySelector("#searchResults"),
   moduleEyebrow: document.querySelector("#moduleEyebrow"),
   moduleTitle: document.querySelector("#moduleTitle"),
   moduleSummary: document.querySelector("#moduleSummary"),
@@ -57,6 +58,7 @@ async function init() {
 
   renderHeroStats();
   renderMarketingSections();
+  renderSearchResults();
   renderModuleList();
   renderSelectedModule();
 }
@@ -64,6 +66,7 @@ async function init() {
 function wireEvents() {
   els.searchInput.addEventListener("input", (event) => {
     state.query = event.target.value.trim().toLowerCase();
+    renderSearchResults();
     renderModuleList();
     renderSelectedModule();
   });
@@ -313,6 +316,82 @@ function renderModuleList() {
   els.moduleList.innerHTML = "";
   els.moduleList.appendChild(fragment);
   els.progressSummary.textContent = `${calculateMastery()}% mastery`;
+}
+
+function renderSearchResults() {
+  const query = state.query;
+  if (!query) {
+    els.searchResults.hidden = true;
+    els.searchResults.innerHTML = "";
+    return;
+  }
+
+  const results = [];
+
+  state.modules.forEach((module, moduleIndex) => {
+    if (matchesQuery(query, module.title)) {
+      results.push({
+        moduleIndex,
+        title: `Module ${module.number}: ${module.title}`,
+        snippet: module.summary || "Open module",
+      });
+    }
+
+    module.objectives.forEach((objective) => {
+      if (matchesQuery(query, `${objective.code} ${objective.text}`)) {
+        results.push({
+          moduleIndex,
+          title: `Objective ${objective.code}`,
+          snippet: objective.text,
+        });
+      }
+    });
+
+    module.questions.forEach((item) => {
+      if (matchesQuery(query, `${item.question} ${item.answer} ${item.objective}`)) {
+        results.push({
+          moduleIndex,
+          title: `Assessment in Module ${module.number}`,
+          snippet: item.question,
+        });
+      }
+    });
+
+    module.references.forEach((reference) => {
+      if (matchesQuery(query, `${reference.citation} ${reference.url}`)) {
+        results.push({
+          moduleIndex,
+          title: `Reference ${reference.id}`,
+          snippet: reference.citation,
+        });
+      }
+    });
+  });
+
+  const limitedResults = results.slice(0, 8);
+
+  if (!limitedResults.length) {
+    els.searchResults.hidden = false;
+    els.searchResults.innerHTML = `<div class="empty-state">No live matches found.</div>`;
+    return;
+  }
+
+  els.searchResults.hidden = false;
+  els.searchResults.innerHTML = "";
+
+  limitedResults.forEach((result) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "search-result";
+    button.innerHTML = `<strong>${result.title}</strong><span>${result.snippet}</span>`;
+    button.addEventListener("click", () => {
+      state.selectedModuleIndex = result.moduleIndex;
+      renderModuleList();
+      renderSelectedModule();
+      document.querySelector(".module-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    els.searchResults.appendChild(button);
+  });
 }
 
 function renderSelectedModule() {
