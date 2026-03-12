@@ -8,14 +8,14 @@
       content="Chairside Nitrous Academy is a progressive web app for dental nitrous oxide training, built from structured course content with assessments, references, and progress tracking."
     />
     <meta name="theme-color" content="#0d3b66" />
-    <link rel="manifest" href="./manifest.webmanifest?v=4" />
+    <link rel="manifest" href="./manifest.webmanifest?v=5" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=4" />
+    <link rel="stylesheet" href="./styles.css?v=5" />
     <title>Chairside Nitrous Academy</title>
   </head>
   <body>
@@ -56,63 +56,32 @@
 
       <main class="content">
         <section class="topbar">
-          <div class="topbar-chip">SSTminimal-style experience</div>
+          <div class="topbar-chip">Sequential learning mode</div>
           <div class="topbar-links">
-            <span>Adaptive learning feel</span>
-            <span>Dental-focused delivery</span>
+            <span id="courseStatus">Course progress</span>
+            <span>One module at a time</span>
             <span>Web + PWA access</span>
           </div>
         </section>
 
-        <section class="hero">
+        <section class="hero compact-hero">
           <div>
-            <p class="eyebrow">SSTminimal for Nitrous Oxide</p>
-            <h2>Minimal sedation training for dental practitioners, rebuilt as a modern web course.</h2>
+            <p class="eyebrow">Nitrous Oxide Learning Path</p>
+            <h2>Complete one module, then move forward through the course.</h2>
             <p class="hero-copy">
-              This nitrous oxide course teaches the science and workflow of safely administering inhaled minimal sedation in dental practice through guided modules, virtual instruction environments, and quick knowledge checks.
+              The experience is now structured as a focused module setting. Learners stay inside the current lesson, complete its objectives and assessments, then advance to the next unlocked module.
             </p>
             <div class="hero-actions">
-              <button id="heroReviewButton" class="button button-accent">Start Learning</button>
+              <button id="heroReviewButton" class="button button-accent">Resume Current Module</button>
               <button id="heroInstallButton" class="button button-secondary">Install on Mobile</button>
             </div>
-            <div class="trust-strip">
-              <div><strong>Audience</strong><span>Dental practitioners and teams</span></div>
-              <div><strong>Format</strong><span>Virtual classroom, simulation, assessments</span></div>
-              <div><strong>Access</strong><span>Mobile-ready and self-paced</span></div>
+            <div class="trust-strip module-strip">
+              <div><strong>Current Step</strong><span id="currentStep">Module 1 of 5</span></div>
+              <div><strong>Next Unlock</strong><span id="nextModuleLabel">Module 2</span></div>
+              <div><strong>Completion Rule</strong><span>Mark reviewed to advance</span></div>
             </div>
           </div>
           <div class="hero-grid" id="heroStats"></div>
-        </section>
-
-        <section class="marketing-grid">
-          <section class="card feature-section">
-            <div class="section-header">
-              <h4>What’s Unique About This Course</h4>
-              <span>Aligned to SSTminimal structure</span>
-            </div>
-            <div id="uniqueFeatures" class="feature-grid"></div>
-          </section>
-
-          <section class="card curriculum-section">
-            <div class="section-header">
-              <h4>Curriculum</h4>
-              <span>Self-paced module sequence</span>
-            </div>
-            <p class="section-copy">
-              The course is organized into short mobile-friendly modules. Each module blends instruction, clinical framing, and assessment so learners can progress at their own pace and return where they left off.
-            </p>
-            <div id="curriculumOverview" class="curriculum-overview"></div>
-          </section>
-        </section>
-
-        <section class="banner">
-          <div>
-            <strong>Clinical education notice</strong>
-            <p>
-              Built from the provided course file and styled for a premium training experience. This remains a draft educational product pending dental faculty, compliance, and protocol review.
-            </p>
-          </div>
-          <button id="markReviewedButton" class="button button-secondary">Mark Module Reviewed</button>
         </section>
 
         <section class="module-panel">
@@ -123,11 +92,24 @@
               <p id="moduleSummary" class="module-summary"></p>
             </div>
             <div class="module-badges">
+              <span id="modulePosition" class="badge"></span>
               <span id="objectiveCount" class="badge"></span>
               <span id="questionCount" class="badge"></span>
               <span id="referenceCount" class="badge"></span>
             </div>
           </header>
+
+          <section class="module-nav card">
+            <div>
+              <strong>Module Progression</strong>
+              <p id="moduleNavSummary" class="section-copy">Move through the course in sequence.</p>
+            </div>
+            <div class="module-nav-actions">
+              <button id="prevModuleButton" class="button button-secondary">Previous Module</button>
+              <button id="markReviewedButton" class="button button-secondary">Mark Module Reviewed</button>
+              <button id="nextModuleButton" class="button button-accent">Next Module</button>
+            </div>
+          </section>
 
           <div class="panel-grid">
             <section class="card">
@@ -170,6 +152,11 @@
             </div>
             <div id="references" class="references"></div>
           </section>
+
+          <section class="module-footer-nav">
+            <button id="footerPrevModuleButton" class="button button-secondary">Previous Module</button>
+            <button id="completeAndContinueButton" class="button button-accent">Complete and Continue</button>
+          </section>
         </section>
       </main>
     </div>
@@ -185,6 +172,6 @@
       </button>
     </template>
 
-    <script type="module" src="./app.js?v=4"></script>
+    <script type="module" src="./app.js?v=5"></script>
   </body>
 </html>

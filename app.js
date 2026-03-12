@@ -15,9 +15,13 @@ const els = {
   progressSummary: document.querySelector("#progressSummary"),
   searchInput: document.querySelector("#searchInput"),
   searchResults: document.querySelector("#searchResults"),
+  courseStatus: document.querySelector("#courseStatus"),
+  currentStep: document.querySelector("#currentStep"),
+  nextModuleLabel: document.querySelector("#nextModuleLabel"),
   moduleEyebrow: document.querySelector("#moduleEyebrow"),
   moduleTitle: document.querySelector("#moduleTitle"),
   moduleSummary: document.querySelector("#moduleSummary"),
+  modulePosition: document.querySelector("#modulePosition"),
   objectiveCount: document.querySelector("#objectiveCount"),
   questionCount: document.querySelector("#questionCount"),
   referenceCount: document.querySelector("#referenceCount"),
@@ -30,12 +34,15 @@ const els = {
   references: document.querySelector("#references"),
   notesInput: document.querySelector("#notesInput"),
   markReviewedButton: document.querySelector("#markReviewedButton"),
+  prevModuleButton: document.querySelector("#prevModuleButton"),
+  nextModuleButton: document.querySelector("#nextModuleButton"),
+  footerPrevModuleButton: document.querySelector("#footerPrevModuleButton"),
+  completeAndContinueButton: document.querySelector("#completeAndContinueButton"),
+  moduleNavSummary: document.querySelector("#moduleNavSummary"),
   installCard: document.querySelector("#installCard"),
   installButton: document.querySelector("#installButton"),
   heroInstallButton: document.querySelector("#heroInstallButton"),
   heroReviewButton: document.querySelector("#heroReviewButton"),
-  uniqueFeatures: document.querySelector("#uniqueFeatures"),
-  curriculumOverview: document.querySelector("#curriculumOverview"),
   moduleButtonTemplate: document.querySelector("#moduleButtonTemplate"),
 };
 
@@ -56,8 +63,8 @@ async function init() {
     throw new Error("No modules were parsed from the course file.");
   }
 
+  state.selectedModuleIndex = getFirstIncompleteModuleIndex();
   renderHeroStats();
-  renderMarketingSections();
   renderSearchResults();
   renderModuleList();
   renderSelectedModule();
@@ -78,12 +85,7 @@ function wireEvents() {
   });
 
   els.markReviewedButton.addEventListener("click", () => {
-    const module = getSelectedModule();
-    state.progress.reviewed[module.number] = !state.progress.reviewed[module.number];
-    saveProgress();
-    renderModuleList();
-    renderSelectedModule();
-    renderHeroStats();
+    toggleReviewedForSelectedModule();
   });
 
   window.addEventListener("beforeinstallprompt", (event) => {
@@ -102,6 +104,26 @@ function wireEvents() {
 
   els.heroReviewButton.addEventListener("click", () => {
     document.querySelector(".module-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  els.prevModuleButton.addEventListener("click", () => {
+    goToModule(state.selectedModuleIndex - 1);
+  });
+
+  els.footerPrevModuleButton.addEventListener("click", () => {
+    goToModule(state.selectedModuleIndex - 1);
+  });
+
+  els.nextModuleButton.addEventListener("click", () => {
+    advanceToNextModule();
+  });
+
+  els.completeAndContinueButton.addEventListener("click", () => {
+    if (!state.progress.reviewed[getSelectedModule().number]) {
+      state.progress.reviewed[getSelectedModule().number] = true;
+      saveProgress();
+    }
+    advanceToNextModule();
   });
 }
 
@@ -242,46 +264,6 @@ function renderHeroStats() {
   }
 }
 
-function renderMarketingSections() {
-  const features = [
-    {
-      title: "Three Learning Environments",
-      body: "Virtual classroom teaching, simulation-based context, and case-style assessments mirror the SSTminimal course rhythm.",
-    },
-    {
-      title: "Focused Mobile Delivery",
-      body: "Short modules, persistent progress, and installable offline access support chairside review and distributed learning.",
-    },
-    {
-      title: "Evidence-Linked Content",
-      body: "Each module keeps learning objectives and references close to the instruction so standards and citations stay visible.",
-    },
-  ];
-
-  els.uniqueFeatures.innerHTML = features
-    .map(
-      (item) => `
-        <article class="feature-card">
-          <strong>${item.title}</strong>
-          <p>${item.body}</p>
-        </article>
-      `,
-    )
-    .join("");
-
-  els.curriculumOverview.innerHTML = state.modules
-    .map(
-      (module) => `
-        <article class="curriculum-card">
-          <div class="curriculum-number">Module ${module.number}</div>
-          <strong>${module.title}</strong>
-          <p>${module.objectives.length} learning objectives · ${module.questions.length} assessment items</p>
-        </article>
-      `,
-    )
-    .join("");
-}
-
 function renderModuleList() {
   const fragment = document.createDocumentFragment();
   const query = state.query;
@@ -300,15 +282,16 @@ function renderModuleList() {
     }
 
     const button = els.moduleButtonTemplate.content.firstElementChild.cloneNode(true);
+    const unlocked = isModuleUnlocked(index);
     button.classList.toggle("active", index === state.selectedModuleIndex);
+    button.classList.toggle("locked", !unlocked);
+    button.disabled = !unlocked;
     button.querySelector(".module-number").textContent = `Module ${module.number}`;
     button.querySelector(".module-name").textContent = module.title;
-    button.querySelector(".module-progress").textContent = getModuleProgressLabel(module);
+    button.querySelector(".module-progress").textContent = unlocked ? getModuleProgressLabel(module) : "Locked";
     button.querySelector(".module-meta").textContent = `${module.objectives.length} objectives · ${module.questions.length} checks`;
     button.addEventListener("click", () => {
-      state.selectedModuleIndex = index;
-      renderModuleList();
-      renderSelectedModule();
+      goToModule(index);
     });
     fragment.appendChild(button);
   });
@@ -381,13 +364,13 @@ function renderSearchResults() {
 
   limitedResults.forEach((result) => {
     const button = document.createElement("button");
+    const unlocked = isModuleUnlocked(result.moduleIndex);
     button.type = "button";
     button.className = "search-result";
+    button.disabled = !unlocked;
     button.innerHTML = `<strong>${result.title}</strong><span>${result.snippet}</span>`;
     button.addEventListener("click", () => {
-      state.selectedModuleIndex = result.moduleIndex;
-      renderModuleList();
-      renderSelectedModule();
+      goToModule(result.moduleIndex);
       document.querySelector(".module-panel").scrollIntoView({ behavior: "smooth", block: "start" });
     });
     els.searchResults.appendChild(button);
@@ -397,6 +380,8 @@ function renderSearchResults() {
 function renderSelectedModule() {
   const module = getSelectedModule();
   const query = state.query;
+  const isLastModule = state.selectedModuleIndex === state.modules.length - 1;
+  const isReviewed = Boolean(state.progress.reviewed[module.number]);
   const filteredTranscript = module.transcript.filter((entry) => matchesQuery(query, `${entry.speaker} ${entry.text}`));
   const filteredQuestions = module.questions.filter((item) =>
     matchesQuery(query, `${item.question} ${item.answer} ${item.objective}`),
@@ -407,6 +392,9 @@ function renderSelectedModule() {
   els.moduleEyebrow.textContent = `Module ${module.number}`;
   els.moduleTitle.textContent = module.title;
   els.moduleSummary.textContent = module.summary;
+  els.modulePosition.textContent = `Module ${Number(module.number)} of ${state.modules.length}`;
+  els.currentStep.textContent = `Module ${Number(module.number)} of ${state.modules.length}`;
+  els.nextModuleLabel.textContent = isLastModule ? "Course complete after review" : `Module ${Number(module.number) + 1}`;
   els.objectiveCount.textContent = `${module.objectives.length} objectives`;
   els.questionCount.textContent = `${module.questions.length} assessments`;
   els.referenceCount.textContent = `${module.references.length} references`;
@@ -414,7 +402,15 @@ function renderSelectedModule() {
   els.transcriptCount.textContent = `${filteredTranscript.length} teaching moments`;
   els.assessmentStatus.textContent = `${countMastered(module)} of ${module.questions.length} marked mastered`;
   els.notesInput.value = state.progress.notes[module.number] || "";
-  els.markReviewedButton.textContent = state.progress.reviewed[module.number] ? "Module Reviewed" : "Mark Module Reviewed";
+  els.markReviewedButton.textContent = isReviewed ? "Module Reviewed" : "Mark Module Reviewed";
+  els.courseStatus.textContent = `${getCompletedModuleCount()} of ${state.modules.length} modules reviewed`;
+  els.moduleNavSummary.textContent = isLastModule
+    ? "This is the final module. Mark it reviewed to complete the sequence."
+    : `Finish this module to unlock Module ${Number(module.number) + 1}.`;
+  els.prevModuleButton.disabled = state.selectedModuleIndex === 0;
+  els.footerPrevModuleButton.disabled = state.selectedModuleIndex === 0;
+  els.nextModuleButton.disabled = !isReviewed || isLastModule;
+  els.completeAndContinueButton.textContent = isLastModule ? "Mark Complete" : "Complete and Continue";
 
   renderObjectives(filteredObjectives);
   renderTranscript(filteredTranscript);
@@ -523,6 +519,55 @@ function renderReferences(references) {
 
 function getSelectedModule() {
   return state.modules[state.selectedModuleIndex];
+}
+
+function getCompletedModuleCount() {
+  return Object.values(state.progress.reviewed).filter(Boolean).length;
+}
+
+function getFirstIncompleteModuleIndex() {
+  const firstIncomplete = state.modules.findIndex((module) => !state.progress.reviewed[module.number]);
+  return firstIncomplete === -1 ? 0 : firstIncomplete;
+}
+
+function isModuleUnlocked(index) {
+  if (index === 0) return true;
+  const previousModule = state.modules[index - 1];
+  return Boolean(state.progress.reviewed[previousModule.number]);
+}
+
+function goToModule(index) {
+  if (index < 0 || index >= state.modules.length || !isModuleUnlocked(index)) return;
+  state.selectedModuleIndex = index;
+  renderModuleList();
+  renderSelectedModule();
+}
+
+function toggleReviewedForSelectedModule() {
+  const module = getSelectedModule();
+  state.progress.reviewed[module.number] = !state.progress.reviewed[module.number];
+  saveProgress();
+  renderModuleList();
+  renderSelectedModule();
+  renderHeroStats();
+}
+
+function advanceToNextModule() {
+  const nextIndex = state.selectedModuleIndex + 1;
+  if (nextIndex >= state.modules.length) {
+    renderModuleList();
+    renderSelectedModule();
+    renderHeroStats();
+    return;
+  }
+
+  if (!isModuleUnlocked(nextIndex)) {
+    state.progress.reviewed[getSelectedModule().number] = true;
+    saveProgress();
+  }
+
+  goToModule(nextIndex);
+  renderHeroStats();
 }
 
 function countMastered(module) {

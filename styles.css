@@ -246,6 +246,12 @@ textarea:focus {
   color: #fff;
 }
 
+.module-button.locked,
+.search-result:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .module-button-top {
   display: flex;
   justify-content: space-between;
@@ -303,6 +309,10 @@ textarea:focus {
 .hero h2 {
   font-size: clamp(2rem, 4vw, 3.1rem);
   letter-spacing: -0.04em;
+}
+
+.compact-hero {
+  padding: 24px 28px;
 }
 
 .hero-actions {
@@ -411,6 +421,25 @@ textarea:focus {
 
 .module-panel {
   padding: 28px;
+}
+
+.module-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+
+.module-nav-actions,
+.module-footer-nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.module-footer-nav {
+  justify-content: flex-end;
+  margin-top: 8px;
 }
 
 .module-header {
@@ -625,6 +654,7 @@ textarea:focus {
 
   .topbar,
   .banner,
+  .module-nav,
   .module-header {
     flex-direction: column;
     align-items: start;
