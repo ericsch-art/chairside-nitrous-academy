@@ -719,6 +719,12 @@ function getPreferredVoiceForSpeaker(speaker, explicitProfile = "") {
   if (!voices.length) return null;
 
   const profile = explicitProfile || inferSpeakerProfile(speaker);
+  const platformMatches = getPlatformVoiceCandidates(profile);
+  for (const candidate of platformMatches) {
+    const matchedVoice = voices.find((voice) => voice.name.toLowerCase().includes(candidate.toLowerCase()));
+    if (matchedVoice) return matchedVoice;
+  }
+
   const englishVoices = voices.filter((voice) => /^en(-|_)?/i.test(voice.lang));
   const pool = englishVoices.length ? englishVoices : voices;
 
@@ -761,6 +767,32 @@ function scoreVoiceForProfile(voice, profile) {
   }
 
   return score;
+}
+
+function getPlatformVoiceCandidates(profile) {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isApple = /mac os|iphone|ipad|safari/.test(userAgent) && !/chrome|crios|edg/.test(userAgent);
+  const isChromeFamily = /chrome|crios/.test(userAgent);
+  const isMicrosoft = /windows|edg/.test(userAgent);
+
+  if (profile === "female") {
+    if (isApple) return ["samantha", "allison", "ava", "karen", "moira"];
+    if (isChromeFamily) return ["google us english", "zira", "aria", "jenny"];
+    if (isMicrosoft) return ["zira", "aria", "jenny"];
+    return ["samantha", "allison", "zira", "ava"];
+  }
+
+  if (profile === "male") {
+    if (isApple) return ["alex", "daniel", "aaron", "fred", "arthur"];
+    if (isChromeFamily) return ["google us english", "guy", "davis", "roger"];
+    if (isMicrosoft) return ["guy", "davis", "roger"];
+    return ["alex", "daniel", "guy", "aaron"];
+  }
+
+  if (isApple) return ["samantha", "alex", "allison"];
+  if (isChromeFamily) return ["google us english", "zira", "guy"];
+  if (isMicrosoft) return ["zira", "guy", "aria"];
+  return ["samantha", "alex", "google us english"];
 }
 
 function speakEntry(entry, visibleIndex = -1, onEnd = null) {
