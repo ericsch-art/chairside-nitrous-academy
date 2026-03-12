@@ -40,6 +40,8 @@ const els = {
   voiceRate: document.querySelector("#voiceRate"),
   playModuleNarrationButton: document.querySelector("#playModuleNarrationButton"),
   stopNarrationButton: document.querySelector("#stopNarrationButton"),
+  recommendVoicesButton: document.querySelector("#recommendVoicesButton"),
+  voiceRecommendations: document.querySelector("#voiceRecommendations"),
   assessments: document.querySelector("#assessments"),
   assessmentStatus: document.querySelector("#assessmentStatus"),
   references: document.querySelector("#references"),
@@ -140,6 +142,10 @@ function wireEvents() {
 
   els.stopNarrationButton.addEventListener("click", () => {
     stopNarration();
+  });
+
+  els.recommendVoicesButton.addEventListener("click", () => {
+    recommendVoicesForCurrentModule();
   });
 
   els.prevModuleButton.addEventListener("click", () => {
@@ -453,6 +459,7 @@ function renderSelectedModule() {
   renderAssessments(filteredQuestions);
   renderReferences(filteredReferences);
   renderVoiceControls();
+  renderVoiceRecommendations();
 }
 
 function renderObjectives(objectives) {
@@ -670,6 +677,48 @@ function renderVoiceControls() {
   renderVoiceOptions();
 }
 
+function renderVoiceRecommendations() {
+  const module = state.modules[state.selectedModuleIndex];
+  if (!module || !state.voices.length) {
+    els.voiceRecommendations.hidden = true;
+    els.voiceRecommendations.innerHTML = "";
+    return;
+  }
+
+  const speakers = [...new Set(module.transcript.map((entry) => entry.speaker))];
+  const recommendations = speakers
+    .map((speaker) => {
+      const voice = getPreferredVoiceForSpeaker(speaker);
+      if (!voice) return null;
+      return {
+        speaker,
+        voice,
+        profile: inferSpeakerProfile(speaker),
+        score: scoreVoiceForProfile(voice, inferSpeakerProfile(speaker)),
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 6);
+
+  if (!recommendations.length) {
+    els.voiceRecommendations.hidden = true;
+    els.voiceRecommendations.innerHTML = "";
+    return;
+  }
+
+  els.voiceRecommendations.hidden = false;
+  els.voiceRecommendations.innerHTML = recommendations
+    .map(
+      (item) => `
+        <article class="voice-recommendation">
+          <strong>${item.speaker}</strong>
+          <div>Recommended: ${item.voice.name} (${item.voice.lang})</div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function renderVoiceOptions() {
   const voices = state.voices;
   if (!voices.length) {
@@ -712,6 +761,22 @@ function applyDefaultVoiceAssignments() {
   }
 
   saveVoiceAssignments();
+}
+
+function recommendVoicesForCurrentModule() {
+  const module = getSelectedModule();
+  const speakers = [...new Set(module.transcript.map((entry) => entry.speaker))];
+
+  speakers.forEach((speaker) => {
+    const preferred = getPreferredVoiceForSpeaker(speaker);
+    if (preferred) {
+      state.voiceAssignments[speaker] = preferred.name;
+    }
+  });
+
+  saveVoiceAssignments();
+  renderVoiceControls();
+  renderVoiceRecommendations();
 }
 
 function getPreferredVoiceForSpeaker(speaker, explicitProfile = "") {

@@ -562,6 +562,26 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
+.voice-recommendations {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.voice-recommendation {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, #f6faff);
+}
+
+.voice-recommendation strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: "Montserrat", sans-serif;
+  color: var(--brand);
+}
+
 .transcript-card {
   animation: rise 280ms ease both;
 }
