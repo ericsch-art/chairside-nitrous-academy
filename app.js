@@ -7,6 +7,12 @@ const state = {
   query: "",
   progress: loadProgress(),
   deferredPrompt: null,
+  voices: [],
+  voiceAssignments: loadVoiceAssignments(),
+  selectedSpeaker: "",
+  voiceRate: 1,
+  activeUtterance: null,
+  speakingTranscriptIndex: -1,
 };
 
 const els = {
@@ -29,6 +35,11 @@ const els = {
   objectivesList: document.querySelector("#objectivesList"),
   transcript: document.querySelector("#transcript"),
   transcriptCount: document.querySelector("#transcriptCount"),
+  speakerSelect: document.querySelector("#speakerSelect"),
+  voiceSelect: document.querySelector("#voiceSelect"),
+  voiceRate: document.querySelector("#voiceRate"),
+  playModuleNarrationButton: document.querySelector("#playModuleNarrationButton"),
+  stopNarrationButton: document.querySelector("#stopNarrationButton"),
   assessments: document.querySelector("#assessments"),
   assessmentStatus: document.querySelector("#assessmentStatus"),
   references: document.querySelector("#references"),
@@ -55,6 +66,7 @@ init().catch((error) => {
 async function init() {
   registerServiceWorker();
   wireEvents();
+  initializeVoices();
 
   const source = await fetch(COURSE_FILE).then((response) => response.text());
   state.modules = parseCourse(source);
@@ -68,6 +80,7 @@ async function init() {
   renderSearchResults();
   renderModuleList();
   renderSelectedModule();
+  renderVoiceControls();
 }
 
 function wireEvents() {
@@ -104,6 +117,29 @@ function wireEvents() {
 
   els.heroReviewButton.addEventListener("click", () => {
     document.querySelector(".module-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  els.speakerSelect.addEventListener("change", (event) => {
+    state.selectedSpeaker = event.target.value;
+    renderVoiceOptions();
+  });
+
+  els.voiceSelect.addEventListener("change", (event) => {
+    if (!state.selectedSpeaker) return;
+    state.voiceAssignments[state.selectedSpeaker] = event.target.value;
+    saveVoiceAssignments();
+  });
+
+  els.voiceRate.addEventListener("input", (event) => {
+    state.voiceRate = Number(event.target.value);
+  });
+
+  els.playModuleNarrationButton.addEventListener("click", () => {
+    playModuleNarration();
+  });
+
+  els.stopNarrationButton.addEventListener("click", () => {
+    stopNarration();
   });
 
   els.prevModuleButton.addEventListener("click", () => {
@@ -416,6 +452,7 @@ function renderSelectedModule() {
   renderTranscript(filteredTranscript);
   renderAssessments(filteredQuestions);
   renderReferences(filteredReferences);
+  renderVoiceControls();
 }
 
 function renderObjectives(objectives) {
@@ -446,16 +483,27 @@ function renderTranscript(entries) {
   }
 
   els.transcript.innerHTML = entries
-    .map((entry) => {
+    .map((entry, index) => {
       const speakerClass = `speaker-${entry.speaker.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
       return `
-        <article class="transcript-card">
+        <article class="transcript-card ${state.speakingTranscriptIndex === index ? "speaking" : ""}">
           <div class="speaker ${speakerClass}">${entry.speaker}</div>
           <div>${entry.text}</div>
+          <div class="assessment-actions">
+            <button class="button button-secondary" data-action="play-line" data-index="${index}">Play Voiceover</button>
+          </div>
         </article>
       `;
     })
     .join("");
+
+  els.transcript.querySelectorAll('[data-action="play-line"]').forEach((button) => {
+    button.addEventListener("click", () => {
+      const entryIndex = Number(button.dataset.index);
+      const entry = entries[entryIndex];
+      speakEntry(entry, entryIndex);
+    });
+  });
 }
 
 function renderAssessments(questions) {
@@ -538,6 +586,7 @@ function isModuleUnlocked(index) {
 
 function goToModule(index) {
   if (index < 0 || index >= state.modules.length || !isModuleUnlocked(index)) return;
+  stopNarration();
   state.selectedModuleIndex = index;
   renderModuleList();
   renderSelectedModule();
@@ -593,6 +642,104 @@ function matchesQuery(query, text) {
   return !query || text.toLowerCase().includes(query);
 }
 
+function initializeVoices() {
+  if (!("speechSynthesis" in window)) return;
+
+  const loadVoices = () => {
+    state.voices = window.speechSynthesis.getVoices();
+    renderVoiceControls();
+  };
+
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function renderVoiceControls() {
+  const module = state.modules[state.selectedModuleIndex];
+  if (!module) return;
+
+  const speakers = [...new Set(module.transcript.map((entry) => entry.speaker))];
+  if (!state.selectedSpeaker || !speakers.includes(state.selectedSpeaker)) {
+    state.selectedSpeaker = speakers[0] || "";
+  }
+
+  els.speakerSelect.innerHTML = speakers.map((speaker) => `<option value="${speaker}">${speaker}</option>`).join("");
+  els.speakerSelect.value = state.selectedSpeaker;
+  els.voiceRate.value = String(state.voiceRate);
+  renderVoiceOptions();
+}
+
+function renderVoiceOptions() {
+  const voices = state.voices;
+  if (!voices.length) {
+    els.voiceSelect.innerHTML = `<option value="">System voice unavailable</option>`;
+    return;
+  }
+
+  const currentSpeaker = state.selectedSpeaker;
+  const assignedVoice = state.voiceAssignments[currentSpeaker] || voices[0].name;
+  els.voiceSelect.innerHTML = voices
+    .map((voice) => `<option value="${voice.name}">${voice.name} (${voice.lang})</option>`)
+    .join("");
+  els.voiceSelect.value = assignedVoice;
+  state.voiceAssignments[currentSpeaker] = assignedVoice;
+  saveVoiceAssignments();
+}
+
+function speakEntry(entry, visibleIndex = -1, onEnd = null) {
+  if (!("speechSynthesis" in window)) return;
+  stopNarration();
+
+  const utterance = new SpeechSynthesisUtterance(entry.text);
+  const selectedVoiceName = state.voiceAssignments[entry.speaker];
+  const voice = state.voices.find((item) => item.name === selectedVoiceName) || state.voices[0];
+  if (voice) utterance.voice = voice;
+  utterance.rate = state.voiceRate;
+  utterance.onstart = () => {
+    state.activeUtterance = utterance;
+    state.speakingTranscriptIndex = visibleIndex;
+    renderSelectedModule();
+  };
+  utterance.onend = () => {
+    state.activeUtterance = null;
+    state.speakingTranscriptIndex = -1;
+    renderSelectedModule();
+    if (onEnd) onEnd();
+  };
+  window.speechSynthesis.speak(utterance);
+}
+
+function playModuleNarration() {
+  const module = getSelectedModule();
+  const visibleEntries = module.transcript.filter((entry) => matchesQuery(state.query, `${entry.speaker} ${entry.text}`));
+  let currentIndex = 0;
+
+  const playNext = () => {
+    if (currentIndex >= visibleEntries.length) {
+      state.speakingTranscriptIndex = -1;
+      renderSelectedModule();
+      return;
+    }
+
+    const entry = visibleEntries[currentIndex];
+    const entryIndex = currentIndex;
+    currentIndex += 1;
+    speakEntry(entry, entryIndex, playNext);
+  };
+
+  playNext();
+}
+
+function stopNarration() {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  state.activeUtterance = null;
+  state.speakingTranscriptIndex = -1;
+  if (state.modules.length) {
+    renderSelectedModule();
+  }
+}
+
 function loadProgress() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
@@ -607,6 +754,18 @@ function loadProgress() {
 
 function saveProgress() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
+}
+
+function loadVoiceAssignments() {
+  try {
+    return JSON.parse(localStorage.getItem(`${STORAGE_KEY}-voices`)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveVoiceAssignments() {
+  localStorage.setItem(`${STORAGE_KEY}-voices`, JSON.stringify(state.voiceAssignments));
 }
 
 function registerServiceWorker() {

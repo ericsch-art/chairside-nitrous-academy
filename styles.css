@@ -515,8 +515,60 @@ textarea:focus {
   gap: 12px;
 }
 
+.voice-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fbfdff, #f3f8fd);
+}
+
+.voice-field {
+  display: grid;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.voice-field-small {
+  min-width: 120px;
+}
+
+.voice-field span {
+  color: var(--ink-2);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.voice-field select,
+.voice-field input[type="range"] {
+  width: 100%;
+}
+
+.voice-field select {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.voice-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .transcript-card {
   animation: rise 280ms ease both;
+}
+
+.transcript-card.speaking {
+  border-color: #9ebee0;
+  box-shadow: 0 10px 24px rgba(29, 95, 149, 0.16);
 }
 
 .speaker {
@@ -658,6 +710,10 @@ textarea:focus {
   .module-header {
     flex-direction: column;
     align-items: start;
+  }
+
+  .voice-toolbar {
+    align-items: stretch;
   }
 
   .topbar-links {
