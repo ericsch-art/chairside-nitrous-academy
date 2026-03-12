@@ -647,6 +647,7 @@ function initializeVoices() {
 
   const loadVoices = () => {
     state.voices = window.speechSynthesis.getVoices();
+    applyDefaultVoiceAssignments();
     renderVoiceControls();
   };
 
@@ -677,13 +678,89 @@ function renderVoiceOptions() {
   }
 
   const currentSpeaker = state.selectedSpeaker;
-  const assignedVoice = state.voiceAssignments[currentSpeaker] || voices[0].name;
+  const assignedVoice = state.voiceAssignments[currentSpeaker] || getPreferredVoiceForSpeaker(currentSpeaker)?.name || voices[0].name;
   els.voiceSelect.innerHTML = voices
     .map((voice) => `<option value="${voice.name}">${voice.name} (${voice.lang})</option>`)
     .join("");
   els.voiceSelect.value = assignedVoice;
   state.voiceAssignments[currentSpeaker] = assignedVoice;
   saveVoiceAssignments();
+}
+
+function applyDefaultVoiceAssignments() {
+  if (!state.voices.length) return;
+
+  const speakerProfiles = {
+    "Dr. Zees": "male",
+    "Dr. Restall": "female",
+    "Mr. Rivera": "male",
+    "Mr. Abebe": "male",
+    "Ms. Fernandez": "female",
+    "Ms. Kowalski": "female",
+    "Ms. Pham": "female",
+    "Ms. Tanaka": "female",
+    "Learning Objective": "neutral",
+    "Clinical Note": "neutral",
+  };
+
+  for (const [speaker, profile] of Object.entries(speakerProfiles)) {
+    if (state.voiceAssignments[speaker]) continue;
+    const preferred = getPreferredVoiceForSpeaker(speaker, profile);
+    if (preferred) {
+      state.voiceAssignments[speaker] = preferred.name;
+    }
+  }
+
+  saveVoiceAssignments();
+}
+
+function getPreferredVoiceForSpeaker(speaker, explicitProfile = "") {
+  const voices = state.voices;
+  if (!voices.length) return null;
+
+  const profile = explicitProfile || inferSpeakerProfile(speaker);
+  const englishVoices = voices.filter((voice) => /^en(-|_)?/i.test(voice.lang));
+  const pool = englishVoices.length ? englishVoices : voices;
+
+  const scored = pool
+    .map((voice) => ({
+      voice,
+      score: scoreVoiceForProfile(voice, profile),
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  return scored[0]?.voice || pool[0] || null;
+}
+
+function inferSpeakerProfile(speaker) {
+  if (speaker === "Dr. Zees") return "male";
+  if (speaker === "Dr. Restall") return "female";
+  if (/^Mr\./.test(speaker)) return "male";
+  if (/^Ms\.|^Mrs\./.test(speaker)) return "female";
+  return "neutral";
+}
+
+function scoreVoiceForProfile(voice, profile) {
+  const haystack = `${voice.name} ${voice.lang}`.toLowerCase();
+  let score = 0;
+
+  if (/^en(-|_)?/i.test(voice.lang)) score += 6;
+  if (/premium|enhanced|natural|neural/i.test(voice.name)) score += 2;
+
+  const femaleHints = ["female", "woman", "zira", "samantha", "ava", "allison", "susan", "karen", "moira", "fiona", "salli"];
+  const maleHints = ["male", "man", "alex", "daniel", "fred", "tom", "aaron", "nathan", "arthur", "diego"];
+
+  if (profile === "female") {
+    if (femaleHints.some((hint) => haystack.includes(hint))) score += 8;
+    if (maleHints.some((hint) => haystack.includes(hint))) score -= 4;
+  } else if (profile === "male") {
+    if (maleHints.some((hint) => haystack.includes(hint))) score += 8;
+    if (femaleHints.some((hint) => haystack.includes(hint))) score -= 4;
+  } else {
+    if (/google us english|samantha|alex/i.test(voice.name)) score += 2;
+  }
+
+  return score;
 }
 
 function speakEntry(entry, visibleIndex = -1, onEnd = null) {

@@ -1,10 +1,10 @@
-const CACHE_NAME = "chairside-nitrous-academy-v6";
+const CACHE_NAME = "chairside-nitrous-academy-v7";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=6",
-  "./app.js?v=6",
-  "./manifest.webmanifest?v=6",
+  "./styles.css?v=7",
+  "./app.js?v=7",
+  "./manifest.webmanifest?v=7",
   "./2026_N20_combined_v1_ALL_MODULES copy.txt",
 ];
 
