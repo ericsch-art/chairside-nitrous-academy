@@ -685,20 +685,7 @@ function renderVoiceRecommendations() {
     return;
   }
 
-  const speakers = [...new Set(module.transcript.map((entry) => entry.speaker))];
-  const recommendations = speakers
-    .map((speaker) => {
-      const voice = getPreferredVoiceForSpeaker(speaker);
-      if (!voice) return null;
-      return {
-        speaker,
-        voice,
-        profile: inferSpeakerProfile(speaker),
-        score: scoreVoiceForProfile(voice, inferSpeakerProfile(speaker)),
-      };
-    })
-    .filter(Boolean)
-    .slice(0, 6);
+  const recommendations = getTopVoiceCandidates(state.selectedSpeaker, 3);
 
   if (!recommendations.length) {
     els.voiceRecommendations.hidden = true;
@@ -711,12 +698,32 @@ function renderVoiceRecommendations() {
     .map(
       (item) => `
         <article class="voice-recommendation">
-          <strong>${item.speaker}</strong>
-          <div>Recommended: ${item.voice.name} (${item.voice.lang})</div>
+          <strong>${state.selectedSpeaker}</strong>
+          <div>Option: ${item.voice.name} (${item.voice.lang})</div>
+          <div>Score: ${item.score}</div>
+          <div class="voice-actions">
+            <button class="button button-secondary" data-action="audition-voice" data-voice="${item.voice.name}">Play Sample</button>
+            <button class="button button-accent" data-action="use-voice" data-voice="${item.voice.name}">Use This Voice</button>
+          </div>
         </article>
       `,
     )
     .join("");
+
+  els.voiceRecommendations.querySelectorAll('[data-action="audition-voice"]').forEach((button) => {
+    button.addEventListener("click", () => {
+      auditionVoice(button.dataset.voice);
+    });
+  });
+
+  els.voiceRecommendations.querySelectorAll('[data-action="use-voice"]').forEach((button) => {
+    button.addEventListener("click", () => {
+      state.voiceAssignments[state.selectedSpeaker] = button.dataset.voice;
+      saveVoiceAssignments();
+      renderVoiceControls();
+      renderVoiceRecommendations();
+    });
+  });
 }
 
 function renderVoiceOptions() {
@@ -777,6 +784,23 @@ function recommendVoicesForCurrentModule() {
   saveVoiceAssignments();
   renderVoiceControls();
   renderVoiceRecommendations();
+}
+
+function getTopVoiceCandidates(speaker, limit = 3) {
+  const voices = state.voices;
+  if (!voices.length) return [];
+
+  const profile = inferSpeakerProfile(speaker);
+  const englishVoices = voices.filter((voice) => /^en(-|_)?/i.test(voice.lang));
+  const pool = englishVoices.length ? englishVoices : voices;
+
+  return pool
+    .map((voice) => ({
+      voice,
+      score: scoreVoiceForProfile(voice, profile),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
 }
 
 function getPreferredVoiceForSpeaker(speaker, explicitProfile = "") {
@@ -881,6 +905,18 @@ function speakEntry(entry, visibleIndex = -1, onEnd = null) {
     if (onEnd) onEnd();
   };
   window.speechSynthesis.speak(utterance);
+}
+
+function auditionVoice(voiceName) {
+  const module = getSelectedModule();
+  const sampleEntry =
+    module.transcript.find((entry) => entry.speaker === state.selectedSpeaker) ||
+    { speaker: state.selectedSpeaker, text: `${state.selectedSpeaker}. Nitrous oxide minimal sedation is fast, controlled, and reassuring for the patient.` };
+
+  const originalVoice = state.voiceAssignments[state.selectedSpeaker];
+  state.voiceAssignments[state.selectedSpeaker] = voiceName;
+  speakEntry(sampleEntry);
+  state.voiceAssignments[state.selectedSpeaker] = originalVoice || voiceName;
 }
 
 function playModuleNarration() {
